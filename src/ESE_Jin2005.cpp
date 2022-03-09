@@ -49,6 +49,7 @@ class Design {
   void InitDis();
   void MaintainCorr(int col, int r1, int r2);
   void MaintainDis(int col, int r1, int r2);
+  double QuickPow(double x, int p);
  private:
   const int kPInPhi = 15;
   double kCorrDenominator;
@@ -113,7 +114,7 @@ void Design::InitDis() {
         l1_dis += std::abs(design_[i][o] - design_[j][o]);
       }
       dis_[i][j] = dis_[j][i] = l1_dis;
-      phi_p_ += std::pow(dis_[i][j], -kPInPhi);
+      phi_p_ += QuickPow(dis_[i][j], -kPInPhi);
     }
   }
   phi_p_ = std::pow(phi_p_, 1.0 / kPInPhi);
@@ -166,13 +167,13 @@ void Design::MaintainCorr(int col, int r1, int r2) {
 }
 
 void Design::MaintainDis(int col, int r1, int r2) {
-  double phi_p_num = std::pow(phi_p_, kPInPhi);
+  double phi_p_num = QuickPow(phi_p_, kPInPhi);
   auto UpdateDis = [this, &phi_p_num, col](int r1, int r2, int deta) {
     if (r1 <= r2) return;
-    phi_p_num -= std::pow(dis_[r1][r2], -kPInPhi);
+    phi_p_num -= QuickPow(dis_[r1][r2], -kPInPhi);
     dis_[r1][r2] -= std::abs(design_[r2][col] - design_[r1][col]);
     dis_[r1][r2] += std::abs(design_[r2][col] - design_[r1][col] + deta);
-    phi_p_num += std::pow(dis_[r1][r2], -kPInPhi);
+    phi_p_num += QuickPow(dis_[r1][r2], -kPInPhi);
   };
   int deta = design_[r2][col] - design_[r1][col];
   for (int i = 0; i < n_run_; ++i) {
@@ -185,18 +186,6 @@ void Design::MaintainDis(int col, int r1, int r2) {
   phi_p_ = std::pow(phi_p_num, 1.0 / kPInPhi);
 }
 
-// void Design::MaintainDis(int col, int r1, int r2) {
-//   for (int i = 0; i < n_run_; ++i) {
-//     if (i == r1 || i == r2) continue;
-//     dis_[i][r1] += std::abs(design_[i][col] - design_[r2][col]) - 
-//       std::abs(design_[i][col] - design_[r1][col]);
-//     dis_[i][r2] += std::abs(design_[i][col] - design_[r1][col]) - 
-//       std::abs(design_[i][col] - design_[r2][col]);
-//     dis_[r1][i] = dis_[i][r1];
-//     dis_[r2][i] = dis_[r2][i];
-//   }
-// }
-
 void Design::Display() {
   std::cout << n_run_ << " " << k_var_ << "\n";
   int w = std::floor(std::log10(n_run_)) + 1;
@@ -207,6 +196,20 @@ void Design::Display() {
   }
   std::cout << "PhiP: " << GetPhiP() << "\n";
   std::cout << "RhoMax: " << GetMaxAbsCorr() << std::endl;
+}
+
+double Design::QuickPow(double x, int p) {
+  bool is_neg = p < 0;
+  p = std::abs(p);
+  double ret = 1;
+  while (p > 0) {
+    if (p & 1) {
+      ret = ret * x;
+    }
+    x = x * x;
+    p >>= 1;
+  }
+  return is_neg ? 1.0 / ret : ret;
 }
 
 class Solver {
