@@ -15,6 +15,7 @@ class Design {
  public:
   using VecInt2D = std::vector<std::vector<int>>;
   using VecDouble2D = std::vector<std::vector<double>>;
+  static VecInt2D ReadDesign(const std::string& file);
   Design(const VecInt2D& design);
   Design(int n, int k, int seed);
   inline int GetN() { return n_run_; }
@@ -60,6 +61,23 @@ class Design {
   VecInt2D dis_;
   double phi_p_;
 };
+
+Design::VecInt2D Design::ReadDesign(const std::string& file) {
+  std::ifstream in(file);
+  if (in.fail()) {
+    std::cerr << "open " << file << " failed." << std::endl;
+    return VecInt2D();
+  }
+  int n, k;
+  in >> n >> k;
+  VecInt2D a(n, std::vector<int>(k));
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < k; ++j) {
+      in >> a[i][j];
+    }
+  }
+  return a;
+}
 
 Design::Design(const VecInt2D& design) 
     : design_(design) {
@@ -215,7 +233,8 @@ double Design::QuickPow(double x, int p) {
 class Solver {
  public:
   Solver(int seed = 19937);
-  Design Solve(int n, int k, double w = 0.5, int limit_cnt = 10000);
+  Design Solve(int n, int k, double w, int limit_cnt);
+  Design Solve(int n, int k, double w, int limit_cnt, Design design);
  private:
   void ShuffleM(std::vector<std::pair<int, int>>& pair_list, int m);
  private:
@@ -228,10 +247,14 @@ Solver::Solver(int seed) {
 
 Design Solver::Solve(int n, int k, double w, int limit_cnt) {
   Design design(n, k, rng_());
+  return Solve(n, k, w, limit_cnt, design);
+}
+
+Design Solver::Solve(int n, int k, double w, int limit_cnt, Design design) {
   const int kPrintRatio = 100;
   int n_e = n * (n - 1) / 2;
   int J = std::min(50, n_e / 5);
-  int M = std::min(100, 2 * n_e * k / J);
+  int M = std::min(100, 2 * n_e * k / J); // TODO: optimize default parameters
   double a1 = 0.8;
   double a2 = 0.9;
   double a3 = 0.7;
@@ -252,13 +275,13 @@ Design Solver::Solve(int n, int k, double w, int limit_cnt) {
   double cur_val = bst_val;
   double cur_corr = bst_corr;
   while (iterator_cnt < limit_cnt) {
-    ++iterator_cnt;
     if (iterator_cnt % kPrintRatio == 0) {
-      std::cerr << "iterator: " << iterator_cnt << 
-        ", current val: " << cur_val <<
-        ", rho max: " << cur_corr << "\n";
-      std::cerr << "T_h: " << T_h << std::endl;
+      std::cerr << "Iterator: " << iterator_cnt 
+        << ", Val: " << cur_val 
+        << ", PhiP: " << design.GetPhiP()
+        << ", RhoMax: " << cur_corr << std::endl;
     }
+    ++iterator_cnt;
     double old_val = bst_val;
     int n_acpt = 0;
     int n_imp = 0;
@@ -344,14 +367,22 @@ void Solver::ShuffleM(std::vector<std::pair<int, int>>& pair_list, int m) {
 } // namespace ESEJin2005
 
 int main(int argc, char** argv) {
-  if (argc < 3) {
-    std::cout << "Usage: ${exe} ${n} ${k} [$w ${cnt}]" << std::endl;
+  if (argc < 5) {
+    std::cout << "Usage: ${exe} ${n} ${k} ${w} ${cnt} [${file}]" << std::endl;
     return 1;
   }
+  // ./ESE_Jin2005 20 8 0.5 1000 >LHD
+  // ./ESE_Jin2005 20 8 0.5 1000 LHD
   int n = std::stoi(argv[1]);
   int k = std::stoi(argv[2]);
-  double w = argc >= 4 ? std::stod(argv[3]) : 0.5;
-  int cnt = argc >= 5 ? std::stoi(argv[4]) : 10000;
-  ESEJin2005::Solver().Solve(n, k, w, cnt).Display();
+  double w = std::stod(argv[3]);
+  int cnt = std::stoi(argv[4]);
+  if (argc > 5) {
+    auto init_design = ESEJin2005::Design::ReadDesign(argv[5]);
+    ESEJin2005::Solver().Solve(n, k, w, cnt, init_design).Display();
+  }
+  else {
+    ESEJin2005::Solver().Solve(n, k, w, cnt).Display();
+  }
   return 0;
 }
