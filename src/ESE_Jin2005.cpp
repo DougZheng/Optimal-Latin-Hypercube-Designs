@@ -32,7 +32,7 @@ class Design {
         (d_avg - d_floor) / std::pow(d_ceil, kPInPhi)), 1.0 / kPInPhi);
       double phi_p_up = 0;
       for (int i = 1; i < n_run_; ++i) {
-        phi_p_up += (n_run_ - i) * std::pow(i * k_var_, kPInPhi);
+        phi_p_up += (n_run_ - i) / QuickPow(i * k_var_, kPInPhi);
       }
       phi_p_up = std::pow(phi_p_up, 1.0 / kPInPhi);
       return {phi_p_low, phi_p_up};
