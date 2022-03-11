@@ -142,6 +142,7 @@ Design& Design::AppendZeros() {
 }
 
 void Design::Display() {
+  std::cout << n_ << " " << k_ << "\n";
   int w = std::floor(std::log10(n_)) + 1;
   for (int i = 0; i < n_; ++i) {
     for (int j = 0; j < k_; ++j) {
@@ -228,7 +229,7 @@ Design Solver::Algorithm4(int m, int n, int k) {
   if (opt_wt) {
     design.WilliamTrans();
   }
-  return design.Resize(m, k);
+  return design.Resize(n, k);
 }
 
 Design Solver::Solve(int n, int k) {
