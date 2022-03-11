@@ -149,7 +149,7 @@ void Design::Display() {
       std::cout << std::setw(w) << (a_[i][j] + 1) << " \n"[j == k_ - 1];
     }
   }
-  std::cout << "maximin l1: " << GetMinL1() << std::endl;
+  std::cout << "MaximinL1: " << GetMinL1() << std::endl;
 }
 
 class Solver {

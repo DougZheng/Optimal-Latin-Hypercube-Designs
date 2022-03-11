@@ -200,10 +200,9 @@ void Design::Display() {
       std::cout << std::setw(w) << design_[i][j] << " \n"[j == k_var_ - 1];
     }
   }
-  std::cout << std::fixed << std::setprecision(3);
   std::cout << "PhiP: " << CalcPhiP() << "\n";
-  std::cout << "Maximin L1: " << CalcMinL1() << "\n";
-  std::cout << "Maximin L2: " << CalcMinL2() << "\n";
+  std::cout << "MaximinL1: " << CalcMinL1() << "\n";
+  std::cout << "MaximinL2: " << CalcMinL2() << "\n";
   std::cout << "RhoMax: " << CalcRhoMax() << "\n";
   std::cout << "RhoAvg: " << CalcRhoAvg() << std::endl;
 }
