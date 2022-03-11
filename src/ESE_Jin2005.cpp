@@ -253,8 +253,10 @@ Design Solver::Solve(int n, int k, double w, int limit_cnt) {
 Design Solver::Solve(int n, int k, double w, int limit_cnt, Design design) {
   const int kPrintRatio = 100;
   int n_e = n * (n - 1) / 2;
-  int J = std::min(50, n_e / 5);
-  int M = std::min(100, 2 * n_e * k / J); // TODO: optimize default parameters
+  // int J = std::min(50, n_e / 5);
+  int J = std::min(50, (n_e + 4) / 5);
+  // int M = std::min(100, 2 * n_e * k / J); // TODO: optimize default parameters
+  int M = k;
   double a1 = 0.8;
   double a2 = 0.9;
   double a3 = 0.7;
