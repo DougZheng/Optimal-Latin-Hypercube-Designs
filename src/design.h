@@ -28,10 +28,10 @@ class Design {
     return w * rho_max + 
       (1 - w) * (phi_p - phi_p_low_) / (phi_p_up_ - phi_p_low_);
   }
-	inline void DisableCorr() { update_corr_ = false; }
-	inline void DisableDis() { update_dis_ = false; }
-	void EnableCorr();
-	void EnableDis();
+  inline void DisableCorr() { update_corr_ = false; }
+  inline void DisableDis() { update_dis_ = false; }
+  void EnableCorr();
+  void EnableDis();
   void SwapInCol(int col, int r1, int r2);
   std::pair<double, double> PreSwapInCol(int col, int r1, int r2) const;
   double GetMaxAbsCorr(int col) const;
@@ -62,8 +62,8 @@ class Design {
   double phi_p_;
   double phi_p_low_;
   double phi_p_up_;
-	bool update_corr_;
-	bool update_dis_;
+  bool update_corr_;
+  bool update_dis_;
 };
 
 Design::VecInt2D Design::ReadDesign(const std::string& file) {
@@ -104,8 +104,8 @@ Design::Design(int n, int k, int seed) : n_run_(n), k_var_(k) {
   }
   InitCorr();
   InitDis();
-	update_corr_ = true;
-	update_dis_ = true;
+  update_corr_ = true;
+  update_dis_ = true;
 }
 
 void Design::InitCorr() {
@@ -159,17 +159,17 @@ void Design::InitPhiPBound() {
 }
 
 void Design::EnableCorr() {
-	if (!update_corr_) {
-		update_corr_ = true;
-		InitCorr();
-	}
+  if (!update_corr_) {
+    update_corr_ = true;
+    InitCorr();
+  }
 }
 
 void Design::EnableDis() {
-	if (!update_dis_) {
-		update_dis_ = true;
-		InitDis();
-	}
+  if (!update_dis_) {
+    update_dis_ = true;
+    InitDis();
+  }
 }
 
 void Design::SwapInCol(int col, int r1, int r2) {
@@ -184,7 +184,7 @@ std::pair<double, double> Design::PreSwapInCol(int col, int r1, int r2) const {
 }
 
 double Design::GetMaxAbsCorr(int col) const {
-	if (!update_corr_) return -1;
+  if (!update_corr_) return -1;
   double max_corr = 0;
   for (int i = 0; i < k_var_; ++i) {
     if (i == col) continue;
@@ -194,7 +194,7 @@ double Design::GetMaxAbsCorr(int col) const {
 }
 
 double Design::GetMaxAbsCorr() const {
-	if (!update_corr_) return -1;
+  if (!update_corr_) return -1;
   double max_corr = 0;
   for (int i = 0; i < k_var_; ++i) {
     for (int j = 0; j < i; ++j) {
@@ -205,7 +205,7 @@ double Design::GetMaxAbsCorr() const {
 }
 
 double Design::GetMaxAbsCorrExcept(int col) const {
-	if (!update_corr_) return -1;
+  if (!update_corr_) return -1;
   double max_corr = 0;
   for (int i = 0; i < k_var_; ++i) {
     if (i == col) continue;
@@ -218,7 +218,7 @@ double Design::GetMaxAbsCorrExcept(int col) const {
 }
 
 void Design::MaintainCorr(int col, int r1, int r2) {
-	if (!update_corr_) return;
+  if (!update_corr_) return;
   for (int i = 0; i < k_var_; ++i) {
     if (i == col) continue;
     int deta = (design_[r1][i] - design_[r2][i]) *
@@ -229,7 +229,7 @@ void Design::MaintainCorr(int col, int r1, int r2) {
 }
 
 void Design::MaintainDis(int col, int r1, int r2) {
-	if (!update_dis_) return;
+  if (!update_dis_) return;
   double phi_p_num = QuickPow15(phi_p_);
   auto UpdateDis = [this, &phi_p_num, col](int r1, int r2, int deta) {
     phi_p_num -= 1.0 / QuickPow15(dis_[r1][r2]);
@@ -247,7 +247,7 @@ void Design::MaintainDis(int col, int r1, int r2) {
 }
 
 double Design::GetPreSwapMaxAbsCorr(int col, int r1, int r2) const {
-	if (!update_corr_) return -1;
+  if (!update_corr_) return -1;
   double max_corr = 0;
   for (int i = 0; i < k_var_; ++i) {
     if (i == col) continue;
@@ -260,7 +260,7 @@ double Design::GetPreSwapMaxAbsCorr(int col, int r1, int r2) const {
 }
 
 double Design::GetPreSwapPhiP(int col, int r1, int r2) const {
-	if (!update_dis_) return -1;
+  if (!update_dis_) return -1;
   double phi_p_num = QuickPow15(phi_p_);
   auto UpdateDis = [this, &phi_p_num, col](int r1, int r2, int deta) {
     phi_p_num -= 1.0 / QuickPow15(dis_[r1][r2]);
@@ -285,8 +285,8 @@ void Design::Display() {
       std::cout << std::setw(w) << design_[i][j] << " \n"[j == k_var_ - 1];
     }
   }
-	if (!update_dis_) InitDis();
-	if (!update_corr_) InitCorr();
+  if (!update_dis_) InitDis();
+  if (!update_corr_) InitCorr();
   std::cout << "PhiP: " << GetPhiP() << "\n";
   std::cout << "RhoMax: " << GetMaxAbsCorr() << std::endl;
 }
