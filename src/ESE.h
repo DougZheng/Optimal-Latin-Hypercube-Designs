@@ -51,19 +51,6 @@ ESE::ESE(int n, int k) : n_(n), k_(k) {
   InitDefaultParam();
 }
 
-void ESE::InitDefaultParam() {
-  int n_e = n_ * (n_ - 1) / 2;
-  j_col_pair_ = std::min(50, (n_e + 4) / 5);
-  m_col_ = k_;
-  alpha1_ = 0.8;
-  alpha2_ = 0.9;
-  alpha3_ = 0.7;
-  rng_.seed(0);
-  w_ = 0.5;
-  iterate_cnt_ = 1000;
-  print_frequence_ = 100;
-}
-
 Design ESE::Search() {
   Design design(n_, k_, rng_());
   return IncrementalSearch(design);
@@ -71,6 +58,8 @@ Design ESE::Search() {
 
 Design ESE::IncrementalSearch(Design design) {
   assert(design.GetN() == n_ && design.GetK() == k_);
+  if (w_ == 0) design.DisableCorr();
+  if (w_ == 1) design.DisableDis();
   std::uniform_real_distribution<double> uniform_dis(0.0, std::nextafter(1.0, 1.1));
   int cnt = 0;
   double opt_corr = design.GetMaxAbsCorr();
@@ -169,6 +158,19 @@ Design ESE::IncrementalSearch(Design design) {
     }
   }
   return Design(opt_design);
+}
+
+void ESE::InitDefaultParam() {
+  int n_e = n_ * (n_ - 1) / 2;
+  j_col_pair_ = std::min(50, (n_e + 4) / 5);
+  m_col_ = k_;
+  alpha1_ = 0.8;
+  alpha2_ = 0.9;
+  alpha3_ = 0.7;
+  rng_.seed(0);
+  w_ = 0.5;
+  iterate_cnt_ = 1000;
+  print_frequence_ = 100;
 }
 
 void ESE::ShuffleM(std::vector<std::pair<int, int>>& pair_list, int m) {
