@@ -24,10 +24,12 @@ class Design {
   inline int GetK() const { return k_var_; }
   inline VecInt2D GetDesign() const { return design_; }
   inline double GetPhiP() const { return update_dis_ ? phi_p_ : -1; };
-  inline double GetCritVal(double w, double rho_max, double phi_p) {
+  inline double GetCritVal(double w, double rho_max, double phi_p) const {
     return w * rho_max + 
       (1 - w) * (phi_p - phi_p_low_) / (phi_p_up_ - phi_p_low_);
   }
+  inline double GetPhiPLow() const { return phi_p_low_; }
+  inline double GetPhiPUp() const { return phi_p_up_; }
   inline void DisableCorr() { update_corr_ = false; }
   inline void DisableDis() { update_dis_ = false; }
   void EnableCorr();
