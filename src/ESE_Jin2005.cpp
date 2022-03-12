@@ -333,7 +333,10 @@ Design Searcher::IncrementalSearch(Design design) {
   int max_no_imp_cnt = 0;
   int explore_dir = 0;
   auto StopSearch = [this, &cnt, &max_no_imp_cnt]() -> bool {
-    return iterate_cnt_ >= 0 && cnt >= iterate_cnt_ || max_no_imp_cnt >= 1000;
+    if (iterate_cnt_ >= 0) {
+      return cnt >= iterate_cnt_;
+    }
+    return max_no_imp_cnt >= 1000;
   };
   auto PrintLog = [this, &cnt, &cur_val, &cur_corr, &design]() -> void {
     std::cerr << "Iteration: " << cnt
