@@ -29,9 +29,6 @@ class Design {
   int n_run_;
   int k_var_;
   VecInt2D design_;
-  // VecDouble2D corr_;
-  // VecDouble2D l1_dis_;
-  // VecDouble2D l2_dis_;
   double phi_p_;
   double min_l1_;
   double min_l2_;
