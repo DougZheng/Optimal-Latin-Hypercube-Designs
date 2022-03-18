@@ -58,11 +58,11 @@ Design SA::IncrementalSearch(Design design) {
   assert(design.GetN() == n_ && design.GetK() == k_);
   std::vector<std::pair<double, double>> ret_val(repeated_cnt_);
   Design::VecInt2D opt_design = design.GetDesign();
-  double opt_val = design.GetCritVal(w_, design.GetMaxAbsCorr(), design.GetPhiP());
+  double opt_val = design.GetCritVal(w_, design.GetRhoMax(), design.GetPhiP());
   for (int i = 0; i < repeated_cnt_; ++i) {
     std::cerr << "Repeation: " << i << std::endl;
     Design search_ret = SearchOnce(design);
-    ret_val[i] = {search_ret.GetMaxAbsCorr(), search_ret.GetPhiP()};
+    ret_val[i] = {search_ret.GetRhoMax(), search_ret.GetPhiP()};
     double val = design.GetCritVal(w_, ret_val[i].first, ret_val[i].second);
     if (val < opt_val) {
       opt_val = val;
@@ -83,17 +83,15 @@ Design SA::SearchOnce(Design design) {
   if (w_ == 1) design.DisableDis();
   std::uniform_real_distribution<double> uniform_dis(0.0, std::nextafter(1.0, 1.1));
   int cnt = 0;
-  double opt_corr = design.GetMaxAbsCorr();
-  double opt_val = design.GetCritVal(w_, opt_corr, design.GetPhiP());
+  double opt_val = design.GetCritVal(w_, design.GetRhoMax(), design.GetPhiP());
   Design::VecInt2D opt_design = design.GetDesign();
   double cur_val = opt_val;
-  double cur_corr = opt_corr;
   double temp = init_temp_;
-  auto PrintLog = [this, &cnt, &cur_val, &cur_corr, &design]() -> void {
+  auto PrintLog = [this, &cnt, &cur_val, &design]() -> void {
     std::cerr << "Iteration: " << cnt
       << ", Val: " << cur_val 
       << ", PhiP: " << design.GetPhiP()
-      << ", RhoMax: " << cur_corr << std::endl;
+      << ", RhoMax: " << design.GetRhoMax() << std::endl;
   };
   while (true) {
     int i = 0;
@@ -109,19 +107,16 @@ Design SA::SearchOnce(Design design) {
       int r2 = rng_() % n_;
       while (r1 == r2) r2 = rng_() % n_;
       design.SwapInCol(col, r1, r2);
-      double tmp_corr = design.GetMaxAbsCorr();
-      double tmp_val = design.GetCritVal(w_, tmp_corr, design.GetPhiP());
+      double tmp_val = design.GetCritVal(w_, design.GetRhoMax(), design.GetPhiP());
 
       if (tmp_val < cur_val) {
         imp_flag = true;
-        cur_corr = tmp_corr;
         cur_val = tmp_val;
       } else {
         double acpt_prob = std::exp((cur_val - tmp_val) / temp);
         bool acpt = uniform_dis(rng_) <= acpt_prob;
         if (acpt) {
           imp_flag = true;
-          cur_corr = tmp_corr;
           cur_val = tmp_val;
         } else {
           design.SwapInCol(col, r1, r2); // restore

@@ -24,6 +24,7 @@ class Design {
   inline int GetK() const { return k_var_; }
   inline VecInt2D GetDesign() const { return design_; }
   inline double GetPhiP() const { return update_dis_ ? phi_p_ : -1; };
+  inline double GetRhoMax() const { return update_corr_ ? rho_max_ : -1; }
   inline double GetCritVal(double w, double rho_max, double phi_p) const {
     return w * rho_max + 
       (1 - w) * (phi_p - phi_p_low_) / (phi_p_up_ - phi_p_low_);
@@ -36,9 +37,6 @@ class Design {
   void EnableDis();
   void SwapInCol(int col, int r1, int r2);
   std::pair<double, double> PreSwapInCol(int col, int r1, int r2) const;
-  double GetMaxAbsCorr(int col) const;
-  double GetMaxAbsCorr() const;
-  double GetMaxAbsCorrExcept(int col) const;
   void Display();
  private:
   inline double QuickPow15(double x) const {
@@ -51,7 +49,7 @@ class Design {
   void InitPhiPBound();
   void MaintainCorr(int col, int r1, int r2);
   void MaintainDis(int col, int r1, int r2);
-  double GetPreSwapMaxAbsCorr(int col, int r1, int r2) const;
+  double GetPreSwapRhoMax(int col, int r1, int r2) const;
   double GetPreSwapPhiP(int col, int r1, int r2) const;
  private:
   const int kPInPhi = 15;
@@ -64,6 +62,9 @@ class Design {
   double phi_p_;
   double phi_p_low_;
   double phi_p_up_;
+  double rho_max_;
+  int rho_max_i_;
+  int rho_max_j_;
   bool update_corr_;
   bool update_dis_;
 };
@@ -114,6 +115,8 @@ void Design::InitCorr() {
   kCorrDenominator = 1.0 * n_run_ * (n_run_ + 1) * (2 * n_run_ + 1) / 6 -
     1.0 * n_run_ * (n_run_ + 1) * (n_run_ + 1) / 4;
   corr_.resize(k_var_, std::vector<double>(k_var_));
+  rho_max_ = -1;
+  rho_max_i_ = rho_max_j_ = 0;
   for (int i = 0; i < k_var_; ++i) {
     corr_[i][i] = 1;
     for (int j = 0; j < i; ++j) {
@@ -124,6 +127,11 @@ void Design::InitCorr() {
       rho -= 1.0 * n_run_ * (n_run_ + 1) * (n_run_ + 1) / 4;
       rho /= kCorrDenominator;
       corr_[i][j] = corr_[j][i] = rho;
+      if (std::fabs(rho) > rho_max_) {
+        rho_max_ = std::fabs(rho);
+        rho_max_i_ = i;
+        rho_max_j_ = j;
+      }
     }
   }
 }
@@ -181,52 +189,39 @@ void Design::SwapInCol(int col, int r1, int r2) {
 }
 
 std::pair<double, double> Design::PreSwapInCol(int col, int r1, int r2) const {
-  return std::make_pair(GetPreSwapMaxAbsCorr(col, r1, r2), 
+  return std::make_pair(GetPreSwapRhoMax(col, r1, r2), 
     GetPreSwapPhiP(col, r1, r2));
-}
-
-double Design::GetMaxAbsCorr(int col) const {
-  if (!update_corr_) return -1;
-  double max_corr = 0;
-  for (int i = 0; i < k_var_; ++i) {
-    if (i == col) continue;
-    max_corr = std::max(max_corr, std::fabs(corr_[i][col]));
-  }
-  return max_corr;
-}
-
-double Design::GetMaxAbsCorr() const {
-  if (!update_corr_) return -1;
-  double max_corr = 0;
-  for (int i = 0; i < k_var_; ++i) {
-    for (int j = 0; j < i; ++j) {
-      max_corr = std::max(max_corr, std::fabs(corr_[i][j]));
-    }
-  }
-  return max_corr;
-}
-
-double Design::GetMaxAbsCorrExcept(int col) const {
-  if (!update_corr_) return -1;
-  double max_corr = 0;
-  for (int i = 0; i < k_var_; ++i) {
-    if (i == col) continue;
-    for (int j = 0; j < i; ++j) {
-      if (j == col) continue;
-      max_corr = std::max(max_corr, std::fabs(corr_[i][j]));
-    }
-  }
-  return max_corr;
 }
 
 void Design::MaintainCorr(int col, int r1, int r2) {
   if (!update_corr_) return;
+  double old_rho_max = rho_max_;
+  int old_rho_max_i = rho_max_i_;
+  int old_rho_max_j = rho_max_j_;
   for (int i = 0; i < k_var_; ++i) {
     if (i == col) continue;
     int deta = (design_[r1][i] - design_[r2][i]) *
       (design_[r2][col] - design_[r1][col]);
     corr_[i][col] = corr_[col][i] = 
       (corr_[i][col] * kCorrDenominator + deta) / kCorrDenominator;
+    if (std::fabs(corr_[i][col]) > rho_max_) {
+      rho_max_ = std::fabs(corr_[i][col]);
+      rho_max_i_ = i;
+      rho_max_j_ = col;
+    }
+  }
+  if ((old_rho_max_i == col || old_rho_max_j == col) &&
+       rho_max_ == old_rho_max) {
+    rho_max_ = -1;
+    for (int i = 0; i < k_var_; ++i) {
+      for (int j = 0; j < i; ++j) {
+        if (std::fabs(corr_[i][j]) > rho_max_) {
+          rho_max_ = std::fabs(corr_[i][j]);
+          rho_max_i_ = i;
+          rho_max_j_ = j;
+        }
+      }
+    }
   }
 }
 
@@ -248,17 +243,34 @@ void Design::MaintainDis(int col, int r1, int r2) {
   phi_p_ = std::pow(phi_p_num, 1.0 / kPInPhi);
 }
 
-double Design::GetPreSwapMaxAbsCorr(int col, int r1, int r2) const {
+double Design::GetPreSwapRhoMax(int col, int r1, int r2) const {
   if (!update_corr_) return -1;
-  double max_corr = 0;
+  double old_rho_max = rho_max_;
+  int old_rho_max_i = rho_max_i_;
+  int old_rho_max_j = rho_max_j_;
+  double new_rho_max = -1;
   for (int i = 0; i < k_var_; ++i) {
     if (i == col) continue;
     int deta = (design_[r1][i] - design_[r2][i]) *
       (design_[r2][col] - design_[r1][col]);
     double tmp_corr = (corr_[i][col] * kCorrDenominator + deta) / kCorrDenominator;
-    max_corr = std::max(max_corr, std::fabs(tmp_corr));
+    if (std::fabs(tmp_corr) > new_rho_max) {
+      new_rho_max = std::fabs(tmp_corr);
+    }
   }
-  return max_corr;
+  if ((old_rho_max_i == col || old_rho_max_j == col) &&
+       new_rho_max < old_rho_max) {
+    for (int i = 0; i < k_var_; ++i) {
+      if (i == col) continue;
+      for (int j = 0; j < i; ++j) {
+        if (j == col) continue;
+        new_rho_max = std::max(new_rho_max, std::fabs(corr_[i][j]));
+      }
+    }
+    return new_rho_max;
+  } else {
+    return std::max(new_rho_max, rho_max_);
+  }
 }
 
 double Design::GetPreSwapPhiP(int col, int r1, int r2) const {
@@ -290,6 +302,6 @@ void Design::Display() {
   if (!update_dis_) InitDis();
   if (!update_corr_) InitCorr();
   std::cout << "PhiP: " << GetPhiP() << "\n";
-  std::cout << "RhoMax: " << GetMaxAbsCorr() << std::endl;
+  std::cout << "RhoMax: " << GetRhoMax() << std::endl;
 }
 } // namespace SearchingAlgorithm

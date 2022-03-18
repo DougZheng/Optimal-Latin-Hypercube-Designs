@@ -64,8 +64,7 @@ Design ESE::IncrementalSearch(Design design) {
   if (w_ == 1) design.DisableDis();
   std::uniform_real_distribution<double> uniform_dis(0.0, std::nextafter(1.0, 1.1));
   int cnt = 0;
-  double opt_corr = design.GetMaxAbsCorr();
-  double opt_val = design.GetCritVal(w_, opt_corr, design.GetPhiP());
+  double opt_val = design.GetCritVal(w_, design.GetRhoMax(), design.GetPhiP());
   Design::VecInt2D opt_design = design.GetDesign();
   double T_h = 0.005 * opt_val;
   std::vector<std::pair<int, int>> pair_list;
@@ -76,7 +75,6 @@ Design ESE::IncrementalSearch(Design design) {
     }
   }
   double cur_val = opt_val;
-  double cur_corr = opt_corr;
   int max_no_imp_cnt = 0;
   int explore_dir = 0;
   auto StopSearch = [this, &cnt, &max_no_imp_cnt]() -> bool {
@@ -85,11 +83,11 @@ Design ESE::IncrementalSearch(Design design) {
     }
     return max_no_imp_cnt >= 1000;
   };
-  auto PrintLog = [this, &cnt, &cur_val, &cur_corr, &design]() -> void {
+  auto PrintLog = [this, &cnt, &cur_val, &design]() -> void {
     std::cerr << "Iteration: " << cnt
-      << ", Val: " << cur_val 
+      << ", Val: " << cur_val
       << ", PhiP: " << design.GetPhiP()
-      << ", RhoMax: " << cur_corr << std::endl;
+      << ", RhoMax: " << design.GetRhoMax() << std::endl;
   };
   while (true) {
     bool stop = StopSearch();
@@ -105,18 +103,14 @@ Design ESE::IncrementalSearch(Design design) {
     for (int i = 0; i < m_col_; ++i) {
       int col = i % k_;
       double inner_opt_val = __DBL_MAX__;
-      double inner_opt_corr = __DBL_MAX__;
       ShuffleM(pair_list, j_col_pair_);
       std::pair<int, int> opt_pair;
-      double corr_except = design.GetMaxAbsCorrExcept(col);
       for (int j = 0; j < j_col_pair_; ++j) {
         auto pair = pair_list[j];
         auto tmp_ret = design.PreSwapInCol(col, pair.first, pair.second);
-        double tmp_corr = std::max(corr_except, tmp_ret.first);
-        double tmp_val = design.GetCritVal(w_, tmp_corr, tmp_ret.second);
+        double tmp_val = design.GetCritVal(w_, tmp_ret.first, tmp_ret.second);
         if (tmp_val < inner_opt_val) {
           inner_opt_val = tmp_val;
-          inner_opt_corr = tmp_corr;
           opt_pair = pair;
         }
       }
@@ -129,7 +123,6 @@ Design ESE::IncrementalSearch(Design design) {
           ++n_imp;
         }
         cur_val = inner_opt_val;
-        cur_corr = inner_opt_corr;
       }
     }
 
