@@ -23,11 +23,15 @@ class Design {
   inline int GetN() const { return n_run_; }
   inline int GetK() const { return k_var_; }
   inline VecInt2D GetDesign() const { return design_; }
+  inline const VecInt2D& GetDesignRef() const { return design_; }
   inline double GetPhiP() const { return update_dis_ ? phi_p_ : -1; };
   inline double GetRhoMax() const { return update_corr_ ? rho_max_ : -1; }
   inline double GetCritVal(double w, double rho_max, double phi_p) const {
     return w * rho_max + 
       (1 - w) * (phi_p - phi_p_low_) / (phi_p_up_ - phi_p_low_);
+  }
+  inline double GetCritVal(double w) const {
+    return GetCritVal(w, rho_max_, phi_p_);
   }
   inline double GetPhiPLow() const { return phi_p_low_; }
   inline double GetPhiPUp() const { return phi_p_up_; }
@@ -52,7 +56,7 @@ class Design {
   double GetPreSwapRhoMax(int col, int r1, int r2) const;
   double GetPreSwapPhiP(int col, int r1, int r2) const;
  private:
-  const int kPInPhi = 15;
+  static constexpr int kPInPhi = 15;
   double kCorrDenominator;
   int n_run_;
   int k_var_;
