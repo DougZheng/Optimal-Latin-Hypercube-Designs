@@ -70,30 +70,32 @@ Design GA::Search() {
       << ", PhiP: " << gbest.GetPhiP()
       << ", RhoMax: " << gbest.GetRhoMax() << std::endl;
   };
-  auto AdjustCol = [this](Design& design, int col, const std::vector<int>& aim_pos) {
+  auto AdjustCol = [this](Design& design, int col, const std::vector<int>& aim_col) {
     const auto& nums = design.GetDesignRef();
-    std::vector<int> num_idx(n_);
+    std::vector<int> num_idx(n_ + 1);
     for (int i = 0; i < n_; ++i) {
       num_idx[nums[i][col]] = i;
     }
     for (int i = 0; i < n_; ++i) {
-      if (num_idx[i] != aim_pos[i]) {
-        design.SwapInCol(col, num_idx[i], aim_pos[i]);
-        num_idx[nums[aim_pos[i]][col]] = num_idx[i];
-        num_idx[i] = aim_pos[i];
+      int x = nums[i][col];
+      int y = aim_col[i];
+      if (x != y) {
+        design.SwapInCol(col, i, num_idx[y]);
+        num_idx[x] = num_idx[y];
+        num_idx[y] = i;
       }
     }
   };
-  auto GetColNumIdx = [this](const Design& design, int col) -> std::vector<int> {
+  auto GetCol = [this](const Design& design, int col) -> std::vector<int> {
     const auto& nums = design.GetDesignRef();
-    std::vector<int> num_idx(n_);
+    std::vector<int> col_num(n_);
     for (int i = 0; i < n_; ++i) {
-      num_idx[nums[i][col]] = i;
+      col_num[i] = nums[i][col];
     }
-    return num_idx;
+    return col_num;
   };
   while (cnt < iterate_cnt_) {
-    if (true || cnt % print_frequence_ == 0) {
+    if (cnt % print_frequence_ == 0) {
       PrintLog();
     }
     ++cnt;
@@ -101,17 +103,17 @@ Design GA::Search() {
     for (int i = 1; i < population_num_ / 2; ++i) {
       int col = rng_() % k_;
       auto& design = designs[rank[i]];
-      const auto& aim_pos = GetColNumIdx(design, col);
+      const auto& aim_col = GetCol(design, col);
       design = best_design;
-      AdjustCol(design, col, aim_pos);
+      AdjustCol(design, col, aim_col);
     }
     designs[rank[population_num_ / 2]] = best_design;
     for (int i = 1; i < population_num_ / 2; ++i) {
       int col = rng_() % k_;
       auto& design = designs[rank[i + population_num_ / 2]];
-      const auto& aim_pos = GetColNumIdx(best_design, col);
+      const auto& aim_col = GetCol(best_design, col);
       design = designs[rank[i]];
-      AdjustCol(design, col, aim_pos);
+      AdjustCol(design, col, aim_col);
     }
     for (int i = 1; i < population_num_; ++i) {
       for (int j = 0; j < k_; ++j) {

@@ -82,7 +82,7 @@ Design LaPSO::Search() {
     ++cnt;
     for (int i = 0; i < particle_num_; ++i) {
       for (int j = 0; j < k_; ++j) {
-        std::vector<int> num_idx(n_);
+        std::vector<int> num_idx(n_ + 1);
         const auto& nums = designs[i].GetDesignRef();
         for (int o = 0; o < n_; ++o) {
           num_idx[nums[o][j]] = o;
