@@ -13,6 +13,6 @@ int main(int argc, char** argv) {
   auto searcher = SearchingAlgorithm::GA(n, k);
   searcher.SetW(w);
   searcher.SetIterateCnt(cnt);
-  searcher.Search();//.Display();
+  searcher.Search().Display();
   return 0;
 }

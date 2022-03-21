@@ -100,19 +100,19 @@ Design GA::Search() {
     }
     ++cnt;
     const auto& best_design = designs[rank[0]];
-    for (int i = 1; i < population_num_ / 2; ++i) {
-      int col = rng_() % k_;
-      auto& design = designs[rank[i]];
-      const auto& aim_col = GetCol(design, col);
-      design = best_design;
-      AdjustCol(design, col, aim_col);
-    }
     designs[rank[population_num_ / 2]] = best_design;
     for (int i = 1; i < population_num_ / 2; ++i) {
       int col = rng_() % k_;
       auto& design = designs[rank[i + population_num_ / 2]];
       const auto& aim_col = GetCol(best_design, col);
       design = designs[rank[i]];
+      AdjustCol(design, col, aim_col);
+    }
+    for (int i = 1; i < population_num_ / 2; ++i) {
+      int col = rng_() % k_;
+      auto& design = designs[rank[i]];
+      const auto& aim_col = GetCol(design, col);
+      design = best_design;
       AdjustCol(design, col, aim_col);
     }
     for (int i = 1; i < population_num_; ++i) {
