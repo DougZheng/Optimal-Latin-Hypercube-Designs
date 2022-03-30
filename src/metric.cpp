@@ -1,5 +1,4 @@
 #include <cmath>
-#include <ctime>
 #include <cassert>
 
 #include <iostream>
@@ -197,21 +196,22 @@ void Design::Display() {
       std::cout << std::setw(w) << design_[i][j] << " \n"[j == k_var_ - 1];
     }
   }
-  std::cout << "PhiP: " << CalcPhiP() << "\n";
+  std::cout << "PhiP15L1: " << CalcPhiP(15, 1) << "\n";
+  std::cout << "PhiP15L2: " << CalcPhiP(15, 2) << "\n";
   std::cout << "MaximinL1: " << CalcMinL1() << "\n";
   std::cout << "MaximinL2: " << CalcMinL2() << "\n";
-  std::cout << "RhoMax: " << CalcRhoMax() << "\n";
-  std::cout << "RhoAvg: " << CalcRhoAvg() << std::endl;
+  std::cout << "MaxAbsCor: " << CalcRhoMax() << "\n";
+  std::cout << "AvgAbsCor: " << CalcRhoAvg() << std::endl;
 }
 
 int main(int argc, char** argv) {
   if (argc < 2) {
-    std::cout << "usage: ${exe} ${file}" << std::endl;
+    std::cerr << "usage: ${exe} ${file}" << std::endl;
     return 1;
   }
   std::ifstream in(argv[1]);
   if (in.fail()) {
-    std::cout << "open " << argv[1] << " failed." << std::endl;
+    std::cerr << "open " << argv[1] << " failed." << std::endl;
     return 1;
   }
   int n, k;

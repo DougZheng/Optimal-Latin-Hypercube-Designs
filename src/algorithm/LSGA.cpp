@@ -1,83 +1,41 @@
-#pragma once
+#include "LSGA.h"
 
-#include "design.h"
-
-#include <cmath>
-#include <cassert>
-
-#include <iostream>
 #include <algorithm>
-#include <utility>
 #include <string>
 #include <vector>
-#include <random>
 #include <set>
 
-/*
-An efficient local search-based genetic algorithm for constructing optimal Latin hypercube design
-https://sci-hub.yncjkj.com/10.1080/0305215X.2019.1584618
-*/
-
-namespace SearchingAlgorithm {
-class LSGA {
- public:
-  LSGA(int n, int k);
-  inline void SetPopulation_num(int population_num) { population_num_ = population_num; }
-  inline void SetCrossoverRatio(double crossover_ratio) { crossover_ratio_ = crossover_ratio; }
-  inline void SetMutationProb(double mutation_prob) { mutation_prob_ = mutation_prob; }
-  inline void SetSelectMaxProb(double select_max_prob) { select_max_prob_ = select_max_prob; }
-  inline void SetSelectMinProb(double select_min_prob) { select_min_prob_ = select_min_prob; }
-  inline void SetW(double w) { w_ = w; }
-  inline void SetIterateCnt(int iterate_cnt) { iterate_cnt_ = iterate_cnt; }
-  inline void SetSeed(int seed) { rng_.seed(seed); }
-  inline void SetPrintFrequence(int print_frequence) { print_frequence_ = print_frequence; }
-  Design Search();
- private:
-  void InitDefaultParam();
-  void ShuffleM(std::vector<int>& pos_list, int m);
- private:
-  int n_;
-  int k_;
-  int population_num_;
-  double crossover_ratio_;
-  double mutation_prob_;
-  double select_max_prob_;
-  double select_min_prob_;
-  double w_;
-  int iterate_cnt_;
-  std::mt19937 rng_;
-  int print_frequence_;
-};
-
-LSGA::LSGA(int n, int k) : n_(n), k_(k) {
+namespace LHD {
+LSGA::LSGA(int n, int k) : SearchAlgorithm(n, k) {
+  SearchAlgorithm::InitDefaultParam();
   InitDefaultParam();
 }
 
-Design LSGA::Search() {
+void LSGA::InitDefaultParam() {
+  population_num_ = 10;
+  crossover_ratio_ = 0.5;
+  mutation_prob_ = 0.2;
+  select_max_prob_ = 0.3;
+  select_min_prob_ = 0.01;
+}
+
+Design::VecInt2D LSGA::Search() {
   std::vector<Design> designs;
   designs.reserve(population_num_);
   for (int i = 0; i < population_num_; ++i) {
     designs.push_back(Design(n_, k_, rng_()));
-    if (w_ == 0) designs.back().DisableCorr();
-    if (w_ == 1) designs.back().DisableDis();
+    designs.back().InitCriteria(criteria_);
   }
-  std::uniform_real_distribution<double> uniform_dis(0.0, std::nextafter(1.0, 1.1));
+  std::uniform_real_distribution<double> uniform_dis(std::nextafter(0.0, 1.0), 1.0);
   int cnt = 0;
   int best_design_idx = 0;
   for (int i = 1; i < population_num_; ++i) {
-    if (designs[i].GetCritVal(w_) < designs[best_design_idx].GetCritVal(w_)) {
+    if (designs[i].GetCriterion() < designs[best_design_idx].GetCriterion()) {
       best_design_idx = i;
     }
   }
   std::vector<int> pos_list(n_);
   std::iota(pos_list.begin(), pos_list.end(), 0);
-  auto PrintLog = [this, &cnt, &designs, &best_design_idx]() -> void {
-    const auto& gbest = designs[best_design_idx];
-    std::cerr << "Iteration: " << cnt
-      << ", Val: " << gbest.GetCritVal(w_) 
-      << ", PhiP: " << gbest.GetPhiP()
-      << ", RhoMax: " << gbest.GetRhoMax() << std::endl;
-  };
   auto AdjustCol = [this](Design& design, int col, const std::vector<int>& aim_col) {
     const auto& nums = design.GetDesignRef();
     std::vector<int> num_idx(n_ + 1);
@@ -152,9 +110,7 @@ Design LSGA::Search() {
     return child;
   };
   while (cnt < iterate_cnt_) {
-    if (cnt % print_frequence_ == 0) {
-      PrintLog();
-    }
+    Log(cnt, designs[best_design_idx]);
     ++cnt;
     const auto& best_design = designs[best_design_idx];
     auto new_designs = designs;
@@ -167,12 +123,12 @@ Design LSGA::Search() {
       if (i == best_design_idx) continue;
       if (uniform_dis(rng_) < mutation_prob_) {
         for (int j = 0; j < k_; ++j) {
-          ShuffleM(pos_list, 2);
+          Utils::ShuffleM(pos_list, 2, rng_);
           new_designs[i].SwapInCol(j, pos_list[0], pos_list[1]);
         }
       } else {
         int col = rng_() % k_;
-        ShuffleM(pos_list, 2);
+        Utils::ShuffleM(pos_list, 2, rng_);
         new_designs[i].SwapInCol(col, pos_list[0], pos_list[1]);
       }
     }
@@ -181,7 +137,7 @@ Design LSGA::Search() {
       if (i == best_design_idx) continue;
       double select_prob = select_max_prob_ - 
         (select_max_prob_ - select_min_prob_) * cnt / iterate_cnt_;
-      if (new_designs[i].GetCritVal(w_) < designs[i].GetCritVal(w_) ||
+      if (new_designs[i].GetCriterion() < designs[i].GetCriterion() ||
           uniform_dis(rng_) < select_prob) {
         designs[i] = new_designs[i];
       }
@@ -189,47 +145,21 @@ Design LSGA::Search() {
 
     best_design_idx = 0;
     for (int i = 1; i < population_num_; ++i) {
-      if (designs[i].GetCritVal(w_) < designs[best_design_idx].GetCritVal(w_)) {
+      if (designs[i].GetCriterion() < designs[best_design_idx].GetCriterion()) {
         best_design_idx = i;
       }
     }
 
     for (int i = 0; i < k_; ++i) {
-      ShuffleM(pos_list, 2);
-      double val = designs[best_design_idx].GetCritVal(w_);
+      Utils::ShuffleM(pos_list, 2, rng_);
+      double val = designs[best_design_idx].GetCriterion();
       designs[best_design_idx].SwapInCol(i, pos_list[0], pos_list[1]);
-      double new_val = designs[best_design_idx].GetCritVal(w_);
+      double new_val = designs[best_design_idx].GetCriterion();
       if (new_val >= val) {
         designs[best_design_idx].SwapInCol(i, pos_list[0], pos_list[1]);
       }
     }
-
-    // std::cout << "iterate: " << cnt << std::endl;
-    // for (int i = 0; i < population_num_; ++i) {
-    //   std::cout << i << " " << designs[i].GetCritVal(w_) << std::endl;
-    // }
   }
-  return designs[best_design_idx];
+  return designs[best_design_idx].GetDesign();
 }
-
-void LSGA::InitDefaultParam() {
-  rng_.seed(0);
-  w_ = 0.5;
-  population_num_ = 10;
-  crossover_ratio_ = 0.5;
-  mutation_prob_ = 0.2;
-  select_max_prob_ = 0.3;
-  select_min_prob_ = 0.01;
-  iterate_cnt_ = 1000;
-  print_frequence_ = 100;
-}
-
-void LSGA::ShuffleM(std::vector<int>& pos_list, int m) {
-  int n = pos_list.size();
-  assert(m <= n);
-  for (int i = 0; i < m; ++i) {
-    int j = rng_() % (n - i);
-    std::swap(pos_list[i], pos_list[j]);
-  }
-}
-} // namespace SearchingAlgorithm
+} // namespace LHD
