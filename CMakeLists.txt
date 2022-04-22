@@ -55,3 +55,9 @@ target_link_libraries(LHD LHD_algorithm)
 add_executable(metric
   "src/metric.cpp"
 )
+
+add_executable(example
+  "src/example.cpp"
+)
+
+target_link_libraries(example LHD_algorithm)
