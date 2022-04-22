@@ -47,7 +47,7 @@ Design::VecInt2D LaPSO::Search() {
           num_idx[nums[o][j]] = o;
         }
 
-        Utils::ShuffleM(pos_list, same_num_p_, rng_);
+        LHD::Utils::ShuffleM(pos_list, same_num_p_, rng_);
         for (int o = 0; o < same_num_p_; ++o) {
           int p = pos_list[o];
           int x = designs[i].GetDesignRef()[p][j];
@@ -58,7 +58,7 @@ Design::VecInt2D LaPSO::Search() {
           num_idx[y] = p;
         }
         
-        Utils::ShuffleM(pos_list, same_num_g_, rng_);
+        LHD::Utils::ShuffleM(pos_list, same_num_g_, rng_);
         for (int o = 0; o < same_num_g_; ++o) {
           int p = pos_list[o];
           int x = designs[i].GetDesignRef()[p][j];
@@ -70,7 +70,7 @@ Design::VecInt2D LaPSO::Search() {
         }
 
         if (uniform_dis(rng_) < ratio_) {
-          Utils::ShuffleM(pos_list, 2, rng_);
+          LHD::Utils::ShuffleM(pos_list, 2, rng_);
           designs[i].SwapInCol(j, pos_list[0], pos_list[1]);
         }
       }

@@ -78,7 +78,7 @@ Design::VecInt2D GA::Search() {
     for (int i = 1; i < population_num_; ++i) {
       for (int j = 0; j < k_; ++j) {
         if (uniform_dis(rng_) < mutation_prob_) {
-          Utils::ShuffleM(pos_list, 2, rng_);
+          LHD::Utils::ShuffleM(pos_list, 2, rng_);
           designs[i].SwapInCol(j, pos_list[0], pos_list[1]);
         }
       }

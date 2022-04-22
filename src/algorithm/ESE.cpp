@@ -62,7 +62,7 @@ Design::VecInt2D ESE::IncrementalSearch(const Design::VecInt2D& ori_design) {
     for (int i = 0; i < m_col_; ++i) {
       int col = i % k_;
       double inner_opt_val = __DBL_MAX__;
-      Utils::ShuffleM(pair_list, j_col_pair_, rng_);
+      LHD::Utils::ShuffleM(pair_list, j_col_pair_, rng_);
       std::pair<int, int> opt_pair;
       for (int j = 0; j < j_col_pair_; ++j) {
         auto pair = pair_list[j];

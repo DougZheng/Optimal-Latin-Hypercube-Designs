@@ -36,7 +36,7 @@ class AlgorithmManager {
       return AlgorithmType::kUnknown;
     }
   }
-  static std::shared_ptr<SearchAlgorithm> GetSearchAlgorithm(int n, int k, const std::string& algorihtm = "ESE") {
+  static std::shared_ptr<SearchAlgorithm> GetSearchAlgorithm(int n, int k, const std::string& algorihtm = "Default") {
     if (algorihtm == "ESE") {
       return std::make_shared<ESE>(n, k);
     } else if (algorihtm == "SA") {
@@ -51,7 +51,7 @@ class AlgorithmManager {
       return std::make_shared<ESE>(n, k);
     }
   }
-  static std::shared_ptr<ConstructionAlgorithm> GetConstructionAlgorithm(const std::string& algorithm) {
+  static std::shared_ptr<ConstructionAlgorithm> GetConstructionAlgorithm(const std::string& algorithm = "Default") {
     if (algorithm == "Wang2018") {
       return std::make_shared<Wang2018>();
     } else {

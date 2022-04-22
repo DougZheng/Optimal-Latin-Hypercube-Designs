@@ -20,7 +20,7 @@ PhiPL1Criterion::PhiPL1Criterion(const std::vector<std::vector<int>>* design, in
         l1_dis += std::abs(a[i][o] - a[j][o]);
       }
       dis_[i][j] = dis_[j][i] = l1_dis;
-      phi_p_ += 1.0 / Utils::QuickPow(dis_[i][j], power);
+      phi_p_ += 1.0 / LHD::Utils::QuickPow(dis_[i][j], power);
     }
   }
   phi_p_ = std::pow(phi_p_, 1.0 / power);
@@ -46,12 +46,12 @@ std::pair<double, double> PhiPL1Criterion::GetCriterionBound() const {
 
 void PhiPL1Criterion::SwapInCol(int col, int r1, int r2) {
   const auto& a = *design_;
-  double phi_p_num = Utils::QuickPow(phi_p_, kPower);
+  double phi_p_num = LHD::Utils::QuickPow(phi_p_, kPower);
   auto Update = [this, &a, &phi_p_num, col](int r1, int r2, int deta) {
-    phi_p_num -= 1.0 / Utils::QuickPow(dis_[r1][r2], kPower);
+    phi_p_num -= 1.0 / LHD::Utils::QuickPow(dis_[r1][r2], kPower);
     dis_[r1][r2] -= std::abs(a[r2][col] - a[r1][col]);
     dis_[r1][r2] += std::abs(a[r2][col] - a[r1][col] + deta);
-    phi_p_num += 1.0 / Utils::QuickPow(dis_[r1][r2], kPower);
+    phi_p_num += 1.0 / LHD::Utils::QuickPow(dis_[r1][r2], kPower);
   };
   int deta = a[r2][col] - a[r1][col];
   for (int i = 0; i < n_run_; ++i) {
@@ -64,12 +64,12 @@ void PhiPL1Criterion::SwapInCol(int col, int r1, int r2) {
 
 double PhiPL1Criterion::PreSwapInCol(int col, int r1, int r2) const {
   const auto& a = *design_;
-  double phi_p_num = Utils::QuickPow(phi_p_, kPower);
+  double phi_p_num = LHD::Utils::QuickPow(phi_p_, kPower);
   auto Update = [this, &a, &phi_p_num, col](int r1, int r2, int deta) {
-    phi_p_num -= 1.0 / Utils::QuickPow(dis_[r1][r2], kPower);
+    phi_p_num -= 1.0 / LHD::Utils::QuickPow(dis_[r1][r2], kPower);
     int tmp_dis = dis_[r1][r2] - std::abs(a[r2][col] - a[r1][col]) +
       std::abs(a[r2][col] - a[r1][col] + deta);
-    phi_p_num += 1.0 / Utils::QuickPow(tmp_dis, kPower);
+    phi_p_num += 1.0 / LHD::Utils::QuickPow(tmp_dis, kPower);
   };
   int deta = a[r2][col] - a[r1][col];
   for (int i = 0; i < n_run_; ++i) {

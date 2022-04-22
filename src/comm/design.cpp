@@ -61,7 +61,7 @@ Design& Design::operator=(const Design& design) {
 
 void Design::InitCriteria(const std::string& criteria_str) {
   criteria_.Clear();
-  const auto& tokens = Utils::Split(criteria_str, "+");
+  const auto& tokens = LHD::Utils::Split(criteria_str, "+");
   for (const auto& token : tokens) {
     std::size_t idx = 0;
     double weight = std::stof(token, &idx);

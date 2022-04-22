@@ -123,12 +123,12 @@ Design::VecInt2D LSGA::Search() {
       if (i == best_design_idx) continue;
       if (uniform_dis(rng_) < mutation_prob_) {
         for (int j = 0; j < k_; ++j) {
-          Utils::ShuffleM(pos_list, 2, rng_);
+          LHD::Utils::ShuffleM(pos_list, 2, rng_);
           new_designs[i].SwapInCol(j, pos_list[0], pos_list[1]);
         }
       } else {
         int col = rng_() % k_;
-        Utils::ShuffleM(pos_list, 2, rng_);
+        LHD::Utils::ShuffleM(pos_list, 2, rng_);
         new_designs[i].SwapInCol(col, pos_list[0], pos_list[1]);
       }
     }
@@ -151,7 +151,7 @@ Design::VecInt2D LSGA::Search() {
     }
 
     for (int i = 0; i < k_; ++i) {
-      Utils::ShuffleM(pos_list, 2, rng_);
+      LHD::Utils::ShuffleM(pos_list, 2, rng_);
       double val = designs[best_design_idx].GetCriterion();
       designs[best_design_idx].SwapInCol(i, pos_list[0], pos_list[1]);
       double new_val = designs[best_design_idx].GetCriterion();
