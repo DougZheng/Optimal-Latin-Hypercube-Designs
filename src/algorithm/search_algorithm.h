@@ -24,7 +24,7 @@ class SearchAlgorithm {
   }
  protected:
   void InitDefaultParam() {
-    criteria_ = LHD::Utils::SMultiCriteria(LHD::Utils::SPhiPL1(0.5), LHD::Utils::SMaxAbsCor(0.5));
+    criteria_ = LHD::Utils::SMultiCriteria(LHD::Utils::SPhiPL2(0.5), LHD::Utils::SMaxAbsCor(0.5));
     rng_.seed(0);
     log_frequence_ = 100;
     log_op_ = false;
