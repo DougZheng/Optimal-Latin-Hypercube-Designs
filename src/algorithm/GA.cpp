@@ -75,7 +75,8 @@ Design::VecInt2D GA::Search() {
       design = best_design;
       AdjustCol(design, col, aim_col);
     }
-    for (int i = 1; i < population_num_; ++i) {
+    for (int i = 0; i < population_num_; ++i) {
+      if (i == rank[0]) continue;
       for (int j = 0; j < k_; ++j) {
         if (uniform_dis(rng_) < mutation_prob_) {
           LHD::Utils::ShuffleM(pos_list, 2, rng_);
