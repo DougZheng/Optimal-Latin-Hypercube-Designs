@@ -19,6 +19,7 @@ void LaPSO::InitDefaultParam() {
 }
 
 Design::VecInt2D LaPSO::Search() {
+  int swap_cnt = 0;
   std::vector<Design> designs;
   designs.reserve(particle_num_);
   for (int i = 0; i < particle_num_; ++i) {
@@ -37,6 +38,7 @@ Design::VecInt2D LaPSO::Search() {
   std::vector<int> pos_list(n_);
   std::iota(pos_list.begin(), pos_list.end(), 0);
   while (cnt < iterate_cnt_) {
+    if (swap_cnt >= limit_swap_cnt_) break;
     Log(cnt, gbest);
     ++cnt;
     for (int i = 0; i < particle_num_; ++i) {
@@ -54,6 +56,7 @@ Design::VecInt2D LaPSO::Search() {
           int y = pbest[i].GetDesignRef()[p][j];
           if (x == y) continue;
           designs[i].SwapInCol(j, p, num_idx[y]);
+          ++swap_cnt;
           num_idx[x] = num_idx[y];
           num_idx[y] = p;
         }
@@ -65,6 +68,7 @@ Design::VecInt2D LaPSO::Search() {
           int y = gbest.GetDesignRef()[p][j];
           if (x == y) continue;
           designs[i].SwapInCol(j, p, num_idx[y]);
+          ++swap_cnt;
           num_idx[x] = num_idx[y];
           num_idx[y] = p;
         }
@@ -72,6 +76,7 @@ Design::VecInt2D LaPSO::Search() {
         if (uniform_dis(rng_) < ratio_) {
           LHD::Utils::ShuffleM(pos_list, 2, rng_);
           designs[i].SwapInCol(j, pos_list[0], pos_list[1]);
+          ++swap_cnt;
         }
       }
     }

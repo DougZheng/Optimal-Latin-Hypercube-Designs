@@ -13,9 +13,9 @@ SA::SA(int n, int k) : SearchAlgorithm(n, k) {
 }
 
 void SA::InitDefaultParam() {
-  init_temp_ = 0.5;
-  rate_ = 0.5;
-  i_max_ = n_ * (n_ - 1) / 2 * k_;
+  init_temp_ = 0.1;
+  rate_ = 0.9;
+  i_max_ = n_ * (n_ - 1) / 2 * k_ * 10;
 }
 
 Design::VecInt2D SA::Search() {
@@ -24,6 +24,7 @@ Design::VecInt2D SA::Search() {
 
 Design::VecInt2D SA::IncrementalSearch(Design design) {
   assert(design.GetN() == n_ && design.GetK() == k_);
+  int swap_cnt = 0;
   design.InitCriteria(criteria_);
   std::uniform_real_distribution<double> uniform_dis(std::nextafter(0.0, 1.0), 1.0);
   int cnt = 0;
@@ -32,9 +33,11 @@ Design::VecInt2D SA::IncrementalSearch(Design design) {
   double cur_val = opt_val;
   double temp = init_temp_;
   while (cnt < iterate_cnt_) {
+    if (swap_cnt >= limit_swap_cnt_) break;
     int i = 0;
     bool imp_flag = false;
     while (i < i_max_ && cnt < iterate_cnt_) {
+      if (swap_cnt >= limit_swap_cnt_) break;
       Log(cnt, design);
       ++cnt;
 
@@ -43,6 +46,7 @@ Design::VecInt2D SA::IncrementalSearch(Design design) {
       int r2 = rng_() % n_;
       while (r1 == r2) r2 = rng_() % n_;
       design.SwapInCol(col, r1, r2);
+      ++swap_cnt;
       double tmp_val = design.GetCriterion();
 
       if (tmp_val < cur_val) {

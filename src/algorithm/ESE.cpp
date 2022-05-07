@@ -14,8 +14,8 @@ ESE::ESE(int n, int k) : SearchAlgorithm(n, k) {
 
 void ESE::InitDefaultParam() {
   int n_e = n_ * (n_ - 1) / 2;
-  j_col_pair_ = std::min(50, (n_e + 4) / 5);
-  m_col_ = k_;
+  j_col_pair_ = std::max(1, std::min(50, n_e / 5));
+  m_col_ = std::min(100, 2 * n_e * k_ / j_col_pair_);
   alpha1_ = 0.8;
   alpha2_ = 0.9;
   alpha3_ = 0.7;
@@ -27,6 +27,7 @@ Design::VecInt2D ESE::Search() {
 }
 
 Design::VecInt2D ESE::IncrementalSearch(const Design::VecInt2D& ori_design) {
+  int swap_cnt = 0;
   Design design(ori_design);
   assert(design.GetN() == n_ && design.GetK() == k_);
   design.InitCriteria(criteria_);
@@ -53,6 +54,7 @@ Design::VecInt2D ESE::IncrementalSearch(const Design::VecInt2D& ori_design) {
     // return max_no_imp_cnt >= 1000;
   };
   while (!StopSearch()) {
+    if (swap_cnt >= limit_swap_cnt_) break;
     Log(cnt, design);
     ++cnt;
 
@@ -67,6 +69,7 @@ Design::VecInt2D ESE::IncrementalSearch(const Design::VecInt2D& ori_design) {
       for (int j = 0; j < j_col_pair_; ++j) {
         auto pair = pair_list[j];
         auto tmp_val = design.PreSwapInCol(col, pair.first, pair.second);
+        ++swap_cnt;
         if (tmp_val < inner_opt_val) {
           inner_opt_val = tmp_val;
           opt_pair = pair;

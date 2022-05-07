@@ -17,6 +17,7 @@ void GA::InitDefaultParam() {
 }
 
 Design::VecInt2D GA::Search() {
+  int swap_cnt = 0;
   std::vector<Design> designs;
   designs.reserve(population_num_);
   for (int i = 0; i < population_num_; ++i) {
@@ -32,7 +33,7 @@ Design::VecInt2D GA::Search() {
   });
   std::vector<int> pos_list(n_);
   std::iota(pos_list.begin(), pos_list.end(), 0);
-  auto AdjustCol = [this](Design& design, int col, const std::vector<int>& aim_col) {
+  auto AdjustCol = [this, &swap_cnt](Design& design, int col, const std::vector<int>& aim_col) {
     const auto& nums = design.GetDesignRef();
     std::vector<int> num_idx(n_ + 1);
     for (int i = 0; i < n_; ++i) {
@@ -45,6 +46,7 @@ Design::VecInt2D GA::Search() {
         design.SwapInCol(col, i, num_idx[y]);
         num_idx[x] = num_idx[y];
         num_idx[y] = i;
+        ++swap_cnt;
       }
     }
   };
@@ -57,6 +59,7 @@ Design::VecInt2D GA::Search() {
     return col_num;
   };
   while (cnt < iterate_cnt_) {
+    if (swap_cnt >= limit_swap_cnt_) break;
     Log(cnt, designs[rank[0]]);
     ++cnt;
     const auto& best_design = designs[rank[0]];
@@ -81,6 +84,7 @@ Design::VecInt2D GA::Search() {
         if (uniform_dis(rng_) < mutation_prob_) {
           LHD::Utils::ShuffleM(pos_list, 2, rng_);
           designs[i].SwapInCol(j, pos_list[0], pos_list[1]);
+          ++swap_cnt;
         }
       }
     }
