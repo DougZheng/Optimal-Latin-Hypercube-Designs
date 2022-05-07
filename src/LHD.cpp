@@ -5,7 +5,7 @@
 
 int main(int argc, char** argv) {
   if (argc < 4) {
-    std::cerr << "Usage: ${exe} ${algorithm} ${n} ${k} [${iterate_cnt} ${criteria}]\n";
+    std::cerr << "Usage: ${exe} ${algorithm} ${n} ${k} [${iterate_cnt} ${criteria} ${seed}]\n";
     std::cerr << "Search algorithms: SA, ESE, GA, LaPSO, LSGA\n";
     std::cerr << "Construction algorithms: Wang2018\n";
     std::cerr << "Example1: ./LHD Wang2018 20 8\n";
@@ -25,6 +25,10 @@ int main(int argc, char** argv) {
     if (argc > 5) {
       const std::string& criteria = argv[5];
       solver->SetCriteria(criteria);
+    }
+    if (argc > 6) {
+      int seed = std::stoi(argv[6]);
+      solver->SetSeed(seed);
     }
     solver->SetLogOp(true);
     auto design = solver->Search();
